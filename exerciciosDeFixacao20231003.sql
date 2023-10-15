@@ -156,3 +156,41 @@ END;
 DELIMITER ;
 
 SELECT total_livros_por_genero('Romance');
+
+
+
+-- Exercicio 2
+
+DELIMITER //
+CREATE FUNCTION listar_livros_por_autor(
+    primeiro_nome_param VARCHAR(255),
+    ultimo_nome_param VARCHAR(255)
+)
+RETURNS TEXT
+DETERMINISTIC
+BEGIN
+    DECLARE livro_titulo TEXT;
+    DECLARE lista_livros TEXT DEFAULT '';
+    DECLARE done INT DEFAULT 0;
+    DECLARE cur CURSOR FOR
+        SELECT L.titulo
+        FROM Livro_Autor LA
+        JOIN Livro L ON LA.id_livro = L.id
+        JOIN Autor A ON LA.id_autor = A.id
+        WHERE A.primeiro_nome = primeiro_nome_param AND A.ultimo_nome = ultimo_nome_param;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    OPEN cur;
+    read_loop: LOOP
+        FETCH cur INTO livro_titulo;
+        IF done = 1 THEN
+            LEAVE read_loop;
+        END IF;
+        SET lista_livros = CONCAT(lista_livros, livro_titulo, '\n');
+    END LOOP;
+    CLOSE cur;
+    RETURN lista_livros;
+END;
+//
+DELIMITER ;
+
+SELECT listar_livros_por_autor('João', 'Silva');
