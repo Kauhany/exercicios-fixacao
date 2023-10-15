@@ -230,3 +230,44 @@ END;
 DELIMITER ;
 
 SELECT * from Livro;
+
+
+
+-- Exercicio 4
+
+DELIMITER //
+CREATE FUNCTION media_livros_por_editora()
+RETURNS DECIMAL(10, 2)
+DETERMINISTIC
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE editora_id INT;
+    DECLARE total_livros INT DEFAULT 0;
+    DECLARE contador_editoras INT DEFAULT 0;
+    DECLARE media DECIMAL(10, 2);
+    DECLARE cur_editora CURSOR FOR
+        SELECT id FROM Editora;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    OPEN cur_editora;
+    calculate_loop: LOOP
+        FETCH cur_editora INTO editora_id;
+        IF done = 1 THEN
+            LEAVE calculate_loop;
+        END IF;
+        SELECT COUNT(*) INTO total_livros FROM Livro WHERE id_editora = editora_id;
+        SET total_livros = total_livros + total_livros;
+        SET contador_editoras = contador_editoras + 1;
+    END LOOP;
+    CLOSE cur_editora;
+    IF contador_editoras > 0 THEN
+        SET media = total_livros / contador_editoras;
+    ELSE
+        SET media = 0;
+    END IF;
+    RETURN media;
+END;
+//
+DELIMITER ;
+
+
+SELECT media_livros_por_editora();
